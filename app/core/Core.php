@@ -57,19 +57,19 @@ class Core {
     protected function loadSettings()
     {
         $defaultSettings = [];
-        $settings = [];
+        $overrides = [];
 
         if (file_exists(APP_DIR . 'config/settingsDefaults.php')) {
             $defaultSettings = include_once APP_DIR . 'config/settingsDefaults.php';
         }
 
         if (file_exists(APP_DIR . 'config/settings.php')) {
-            $settings = include_once APP_DIR . 'config/settings.php';
+            $overrides = include_once APP_DIR . 'config/settings.php';
         }
 
-        $merged = array_merge($defaultSettings, $settings);
+        $settings = array_replace_recursive($defaultSettings, $overrides);
 
-        $this->settings = Util::objectifyAssocArray($merged, true);
+        $this->settings = Util::objectifyAssocArray($settings, true);
 
         return $this;
     }
@@ -113,6 +113,8 @@ class Core {
 
     public function findMatchingRoute($routes, $route)
     {
+        $routeExtenderPath = '';
+
         if (empty($routes)) {
             $this->util->triggerError(
                 $this,
@@ -133,7 +135,7 @@ class Core {
             foreach ($routes as $configuredRoute => $configuredClass) {
                 $matches = array();
                 if (preg_match('#^'. $configuredRoute . '$#', $route, $matches)) {
-                    $variant = $matches[1];
+                    $variant = isset($matches[1]) ? $matches[1] : '';
                     $variants = $matches;
                     $routeExtenderPath = $configuredClass;
                     break;

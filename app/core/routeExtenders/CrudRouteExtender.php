@@ -44,27 +44,19 @@ abstract class CrudRouteExtender extends DataRouteExtender {
         if ($valid['success']) {
             return;
         }
-        
+
         $this->triggerError(409, $valid['error']);
     }
 
-    protected function sendResponse($message = 'It worked!', $data = [])
+    protected function sendResponse($message = 'It worked!', $data = null)
     {
         $response = [
             'success' => true,
             'message' => $message,
         ];
 
-        if (!empty((array) $data)) {
+        if ($data !== null) {
             $response['data'] = $data;
-        }
-
-        if (!empty((array) $this->renderData)) {
-            $response['htmls'] = $this->renderData;
-        }
-
-        if (!empty($this->redirect)) {
-            $response['redirect'] = $this->redirect;
         }
 
         Util::returnJsonResponse($response, 200);

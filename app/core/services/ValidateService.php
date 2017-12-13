@@ -14,6 +14,7 @@ namespace Bc\App\Core\Services;
 
 class ValidateService {
 
+    protected $data;
     protected $form;
     protected $formData;
     protected $route;
@@ -24,20 +25,32 @@ class ValidateService {
         return $this;
     }
 
-    public function validateForm($formData, $form)
+    public function validateData($data, $action, $requiredFields = [])
+    {
+        $this->data = $data;
+        return $this->{'validate' . $action . 'Data'}($requiredFields);
+    }
+
+    public function validateForm($formData, $form, $requiredFields = [])
     {
         $this->formData = $formData;
-        return $this->{'validate' . $form . 'Form'}();
+        return $this->{'validate' . $form . 'Form'}($requiredFields);
     }
 
     protected function success()
     {
-        return ['success' => true];
+        return (object) ['success' => true];
     }
 
-    protected function fail($message)
+    protected function fail($message, $data = null)
     {
-        return ['success' => false, 'error' => $message];
+        $fail = (object) ['success' => false, 'error' => $message];
+
+        if ($data !== null) {
+            $fail->data = $data;
+        }
+
+        return $fail;
     }
 
 }

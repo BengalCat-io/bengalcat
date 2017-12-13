@@ -550,7 +550,7 @@ class Util {
         $data,
         $debugMessage = 'No debug message specified.'
     ) {
-        debugLog(json_encode([
+        error_log(json_encode([
             'debug' => true,
             'code' => 503,
             'message' => $debugMessage,

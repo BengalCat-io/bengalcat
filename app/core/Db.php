@@ -125,7 +125,7 @@ class Db {
             $string,
             $params = array()
         ) {
-            $this->querySelect($string, $params, null, null);
+            return $this->querySelect($string, $params, null, null);
         }
 
     public function queryDelete(
@@ -214,10 +214,11 @@ class Db {
         $usedParams = [];
         foreach($params as $key => $value) {
 
-            if (preg_match("#\s$key\s#", $string)) {
+            if (preg_match("#(\s|\()$key(\s|;|\)|,)#s", $string)) {
                 $usedParams[$key] = $value;
             }
         }
+
         return $usedParams;
     }
 
@@ -240,7 +241,7 @@ class Db {
             }
             else {
                 $q = $this->db->prepare($string);
-                $this->removeUnusedParams($string, $params);
+                $params = $this->removeUnusedParams($string, $params);
                 $this->handleParamsAndExecute($q, $params);
             }
 

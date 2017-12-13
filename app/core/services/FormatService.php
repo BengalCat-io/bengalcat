@@ -31,26 +31,26 @@ namespace Bc\App\Core\Services;
 class FormatService {
 
     protected $route;
-    
+
     public function __construct($route)
     {
         $this->route = $route; // can only use public methods/props
         return $this;
     }
 
-    public function formatValueByKeyAndNameSpace($key, $value, $nameSpace = '')
+    public function formatValueByKeyAndNameSpace($key, $value, $nameSpace = '', $excludeValues = [])
     {
         $method = 'format' . ucfirst($key) . ucfirst($nameSpace);
 
         $newValue = (method_exists($this, $method))
-            ? $this->{$method}($value)
+            ? $this->{$method}($value, $excludeValues)
             : $value;
 
         return $newValue;
     }
 
-    public function addFormatsByKeyAndNameSpace($key, $value, $nameSpace = '') {
-
+    public function addFormatsByKeyAndNameSpace($key, $value, $nameSpace = '') 
+    {
         $method = 'addFormats' . ucfirst($key) . ucfirst($nameSpace);
 
         $newValues = (method_exists($this, $method))
@@ -58,7 +58,6 @@ class FormatService {
             : [];
 
         return $newValues;
-
     }
 }
 

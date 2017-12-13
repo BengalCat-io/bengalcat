@@ -275,17 +275,22 @@ abstract class RouteExtender {
     public function triggerError(
         $code = 404,
         $message = 'There are no defined routes.',
-        $data = []
+        $data = null
     ) {
+        $returnData = [
+            'success' => false,
+            'error_code' => $code,
+            'message' => $message
+        ];
+
+        if ($data !== null) {
+            $returnData['data'] = $data;
+        }
+
         Util::triggerError(
             $this->bc,
             $this->bc->getSetting('errorRoute'),
-            [
-                'success' => false,
-                'error_code' => $code,
-                'message' => $message,
-                'data' => $data
-            ]
+            $returnData
         );
     }
 }

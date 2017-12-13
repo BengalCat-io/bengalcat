@@ -1,171 +1,158 @@
 # BengalCat PHP Framework - Local Development Installation
 
-Requirements:
+#### Running
 
-- You will need to install **docker** and **docker-compose** on your own.
-
-## Install & Run - Docker Compose
-
-Download repo
-
-```
-cd DockerLocal
-sudo docker-compose up
-```
-Go to [http://localhost:8080](http://localhost:8080)
+- nginx/1.10.3 
+- php7.0
+- mysql Ver 14.14 Distrib 5.7.20,
 
 ---
 
-## Import your own sql file
+## Local Development
 
-In `DockerLocal\data\dumps` put a dump.sql file in this folder
-(include the creation of the database) in the dump file, and you will be able to connect to it.
+### Use [**DockerLocal**](https://github.com/amurrell/DockerLocal) & [**ProxyLocal**](https://github.com/amurrell/ProxyLocal)
 
-Look at the `app/config/connections.php` for an example (basically just create another entry with your database name.
+**DockerLocal** is used for setting up a site to be served on localhost:PORT and runs on docker containers - nginx + php7.0-fpm, memcached, mysql and your project's web application files.
 
-Remember to `sudo docker-compose down` so that next time you `up` it will re-import dump files.
+**ProxyLocal** is used for using a domain with your project locally.
 
-Also, if you made changes to your database and want to keep them after removing
-(down) your container, you may want to export your database.
-Access in the command line is shown below.
+Review the DockerLocal [README](https://github.com/amurrell/DockerLocal) for more commands/info.
 
-## Access database from host machine command line
+Review the ProxyLocal [README](https://github.com/amurrell/ProxyLocal) for more commands/info.
 
-If you are running a local mysql server on port 3307 for some reason, you'd need to stop that server.
+#### Requirements
 
+- Docker (Tested with Docker version 17.03.1-ce, build c6d412e)
+- Docker-Compose (Tested with docker-compose version 1.12.0, build b31ff33)
+- Bash 4+ (MacOS default 3.2.57, needs brew install)
+
+#### Get Docker for Mac
+
+[Docker + Docker Compose](https://docs.docker.com/docker-for-mac/install/)
+
+#### Update Bash for MacOS
 ```
-# mysql -u USER -pPASSWORD DB_NAME --port=PORT -h IP
-mysql -u root -p1234 example_data --port=3307 -h 127.0.0.1
+/bin/bash --version
+brew install bash
+/usr/local/bin/bash --version
 ```
-
-You can use these credentials with other mysql client guis you might have.
-
 ---
 
-# Access Terminal, View Logs ...
+#### Install
 
-## Get Name of your Container for all other commands
+- Repo Install
 
-Observe the NAME of your mysitename container
+    ```
+    cd ~/vhosts
+    git clone git@github.com:youruser/your-site-repo.git
+    ```
 
-`sudo docker ps -a`
+- ProxyLocal install
 
-## Check logs
+    If you do not have a ProxyLocal installation already...
 
-`sudo docker logs CONTAINER_NAME`
+    ```
+    cd ~/vhosts
+    git clone git@github.com:amurrell/ProxyLocal.git
+    cd ProxyLocal
+    cp sites-example.yml sites.yml
+    ```
 
-## Get to the commandline of your image IF it IS RUNNING
+    Setup the sites.yml in that project with (choose random port, ie 3001): 
 
-`sudo docker exec -t -i CONTAINER_NAME /bin/bash`
+    ```
+    nano sites.yml
+    ### Add to sites, the project port and domain name.
+    sites:
+        3001: docker.your-site.com
+    ```
 
-## Get to the command line of your container IF NOT RUNNING
+   **Tip** If not using Proxylocal, site will be available at localhost:3001 instead.
 
-Observe name of image, probably your sitefolder_web
-`sudo docker images`
+- Dockerlocal Install
 
-Use it below:
-
-`sudo docker run -it IMAGE_NAME /bin/bash`
-
-
-## Stop your container
-
-`sudo docker stop CONTAINER_NAME`
-
+	```
+	cd ~/vhosts/your-site-repo
+	git clone git@github.com:amurrell/DockerLocal.git
+	cd DockerLocal
+	echo 3001 > port
+	# nano nginx.site.conf (mentioned above)
+	```
+	
 ---
 
-# Basic Docker Help
+#### Commands
 
-Refer to this doc: https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-getting-started
+- ##### Create and use a local database `your_db`:
+    
+    ```
+    cd DockerLocal/commands
+    ./site-up -c=your_db
+    ```
 
-----
+- ##### Shut down. Start it up again (the same database will get used because of a new file DockerLocal/database)
+	
+    ```
+    cd DockerLocal/commands
+    ./site-down
+    ./site-up
+    ```
 
-## Start docker
+- ##### Use remote database:
 
-`sudo docker -d &`
+    Copy `DockerLocal/databases-example.yml`, replace with the following config:
 
-## Test the Install
+    ```
+    databases:
+        host: dev.your-site-that-exists.com
+        user: your.db.user
+        pass: XXX
+        port: 3306
+        3001: dev_your_db
+    ```
 
-`sudo docker run hello-world`
+    Now, it'll automatically pull the db (and store it locally in the container as a copy)
 
-## List available images
+    ```
+    cd DockerLocal/commands
+    ./site-up
+    ```
 
-`sudo docker images`
+- ##### Want to refresh that remote database?
 
-## Commit changes to an image (save state)
+    ```
+    cd/DockerLocal/commands
+    ./site-db
+    ```
+	
+- ##### Want to share your site with others temporarily? (one dockerlocal project at a time)
 
-`sudo docker commit [container ID] [image name]`
+    [Install ngrok](https://github.com/amurrell/DockerLocal#install-ngrok) first.
 
-## Sharing your image by pushing
+    ```
+    cd DockerLocal/commands
+    ./site-ngrok
+    ```
 
-`sudo docker push my_username/my_first_image`
+- ##### Want to ssh into the containers for some reason?
 
-(you would need to sign up on index.docker.io to push images to docker index)
+    - `./site-ssh -h=mysql` && `mysql -u root -p1234` to get into mysql
+    - `./site-ssh -h=web` && `cd /var/www/site/` to see your site, or `cd /etc/php/7.0/fpm/pool.d` for php-fpm conf, or `cd /etc/nginx/` for nginx conf
+    - `./site-ssh -h=memcached` .. there's really no reason to be here.
 
-## List running containers
-
-`sudo docker ps`
-
-## List running AND non-running containers
-
-`sudo docker ps -l`
-
-## To get command access to a running container
-
-`sudo docker exec -t -i container_name /bin/bash`
-
-where you get the container_id from listing the containers
-
-and if it was not running:
-
-`sudo docker run -it --entrypoint /bin/bash`
-
-## Remove containers
-
-`sudo docker rm container ID`
-
-----
-
-# Advanced Docker Manipulation
-
-
-## Install more packages, php libraries and so on
-
-Your Dockerfile can be edited to install more things if you need.
-
-Add to dockerfile at least before CMD
-
-```
-RUN apt-get update && \
-    apt-get install -y a-package && \
-    apt-get install -y another-package
-```
-
-## Update your environmental variables
-
-Maybe you want to set the database environmental variables.
-
-1. Edit the php7-fpm.site.conf to reflect these env var changes.
-2. Need to rebuild. Either `sudo docker-compose build` or `sudo docker build -t mysitename`
-3. Need to rerun the container. Either `sudo docker-compose up` or `sudo docker run -d -p 3000:8080 -v ./:/var/www/site mysitename`
-
-## Update specific nginx config or location blocks
-
-Maybe you want to edit your site's nginx configuration
-
-1. Edit the nginx.site.conf to reflect those config changes.
-2. Need to rebuild, need to restart - so refer to that in the section above, 2. and 3.
 
 ----
 
 ## Node Setup
 
-You do not have to utilize build. Edit your `html/src/templates/head.php` to
+If you do not have a theme, copy the `html/themes/bengalcat/` theme and modify it to be your new theme. (Change app/config/settingsDefaults.php to reflect theme choice)
+
+You do not have to utilize build. Edit your `html/themes/yourtheme/src/templates/head.php` to
 alter the style sheet used to `/assets/css/style.css`.
 
 ### If you want to use gulp...
 
-1. Edit your `html/src/templates/head.php` to alter the style sheet used to
+1. Edit your `html/themes/yourtheme/src/templates/head.php` to alter the style sheet used to
  `/assets/build/main.css`.
 
 Install NodeJS, npm etc - fastest most consistent way I've ever found:
@@ -174,11 +161,6 @@ Install NodeJS, npm etc - fastest most consistent way I've ever found:
 1. `cd /usr/local`
 1. `tar --strip-components 1 -xzf /path/to/downloaded/tar/your-zip.tar.gz`
 
-Then go to `html/assets` and run `npm install`
+Then go to `html/themes/yourtheme/assets` and run `npm install`
 
-Also had to run `npm install --global gulp-cli` to be able to use `gulp`
-
-Additionally, on linux, was running into issues when trying to `gulp watch`
-which was solved by:
-
-    `echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p`
+`npm run watch` to watch and `npm run build` to build with gulp.

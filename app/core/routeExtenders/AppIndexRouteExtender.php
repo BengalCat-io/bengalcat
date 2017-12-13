@@ -3,6 +3,7 @@
 namespace Bc\App\Core\RouteExtenders;
 
 use Bc\App\Core\Util;
+use Exception;
 
 abstract class AppIndexRouteExtender extends DataRouteExtender {
 
@@ -55,6 +56,12 @@ abstract class AppIndexRouteExtender extends DataRouteExtender {
                 ]
             );
         } catch (Exception $ex) {
+            error_log(json_encode([
+                'error' => 'new route error exception',
+                'code' => $ex->getCode(),
+                'message' => $ex->getMessage(),
+                'trace' => $ex->getTraceAsString(),
+            ]));
             $this->routeError();
         }
 
@@ -112,7 +119,20 @@ abstract class AppIndexRouteExtender extends DataRouteExtender {
             $this->bc->getRoute()
         );
 
-        return (!empty($gated->routeExtenderPath));
+        $skipGatedRoutes = array_combine(
+            $this->settings->skipGateRoutes,
+            $this->settings->skipGateRoutes
+        );
+
+        $skipGated = $this->bc->findMatchingRoute(
+            $skipGatedRoutes,
+            $this->bc->getRoute()
+        );
+
+        return (
+            !empty($gated->routeExtenderPath) && // is gated
+            empty($skipGated->routeExtenderPath) // and not skipable
+        );
     }
 
     protected function getDisplayController($displayType)
@@ -150,15 +170,19 @@ abstract class AppIndexRouteExtender extends DataRouteExtender {
     protected function buildApiRoute()
     {
         if (
-            empty($this->routeVars->{$this->routeVars->{$this->app}}) ||
-            empty($this->routeVars->{$this->app})
+            empty($this->routeVars->{$this->routeVars->{$this->apiPathNameSpace}}) ||
+            empty($this->routeVars->{$this->apiPathNameSpace})
         ) {
             $this->apiRoute = false;
             return;
         }
 
-        $action = $this->routeVars->{$this->app};
+        $action = $this->routeVars->{$this->apiPathNameSpace};
         $object = $this->routeVars->$action;
+        // Handle if the object has a hyphen: ie refresh-token -> RefreshToken
+        $object = stristr($object, '-')
+            ? str_replace(' ', '', ucwords((str_replace('-', ' ', $object))))
+            : $object;
 
         $route = vsprintf($this->settings->apiRouteTemplate, [
             ucfirst($action),
@@ -169,7 +193,7 @@ abstract class AppIndexRouteExtender extends DataRouteExtender {
         $this->apiRoute = (class_exists($route) ? $route : false);
     }
 
-    protected function routeError($errorRoute)
+    protected function routeError($errorRoute = '')
     {
         $errorRoute = !empty($errorRoute) ? $errorRoute : $this->bc->getSetting('errorRoute');
         $this->bc->changeSetting(
