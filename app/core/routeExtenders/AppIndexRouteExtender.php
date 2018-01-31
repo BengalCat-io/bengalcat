@@ -25,6 +25,15 @@ abstract class AppIndexRouteExtender extends DataRouteExtender {
     {
         $this->matchVars = array_merge($this->matchVars, [$var]);
     }
+    
+    protected function addMatchVars($arr)
+    {
+        if (!empty($arr)) {
+            foreach ($arr as $var) {
+                $this->addMatchVar($var);
+            }
+        }
+    }
 
     protected function isApiCall()
     {

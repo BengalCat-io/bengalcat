@@ -1,0 +1,57 @@
+
+.alertstatus {
+
+    position: fixed;
+    top: 0;
+    left: 50%;
+    height: $nav-height + 10;
+    line-height: $nav-height - 10;
+    width: 100%;
+    padding: 10px;
+    transform: translateX(-50%);
+    display: none;
+
+    &:before {
+
+    }
+
+    &.error {
+	display: block;
+	background: red;
+
+	.text {
+	    &::before {
+		@include content-icon('\f071');
+		margin-right: 10px;
+	    }
+	}
+    }
+
+    &.success {
+	display: block;
+	background: green;
+
+	.text {
+	    &::before {
+		@include content-icon('\f071');
+		margin-right: 10px;
+	    }
+	}
+    }
+
+    .text {
+	color: #fff;
+	text-align: center;
+	text-transform: capitalize;
+    }
+
+    .close-button {
+	color: #fff;
+	position: absolute;
+	top: 0;
+	right: 30px;
+	line-height: $nav-height;
+	font-size: 1.2em;
+	cursor: pointer;
+    }
+}

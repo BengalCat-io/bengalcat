@@ -70,6 +70,95 @@ return [
         'gatedRoutes'      => [
             '/admin/(.*)',
         ]
+    ],
+    'exampleApp'         => [
+        'appName'               => 'exampleApp',
+        'displayName'           => 'Example App',
+        'errorPortalRoute'      => '\Bc\App\Apps\ExampleApp\Portal\ExampleAppPortalError',
+        'apiToken'              => 'bror7YrxtBJAGX5oSWc4qncX6ZUPk4LxSGNZiV2kfsrFmWfgRFxJYhJytMZc',
+        'apiPathNameSpace'      => 'bc',
+        'apiPath'               => '/api/bc/',
+        'apiRouteTemplate'      => 'Bc\App\Apps\ExampleApp\Api\%s\ExampleAppApi%s%s',
+        'permissions'           => [
+            "login",
+            "user-view-own",
+            "user-view-all",
+            "user-edit-own",
+            "user-edit-all",
+            "user-delete-own",
+            "user-delete-all",
+            "user-approve",
+            "user-deny",
+            "user-grant" // for permissions
+        ],
+        "permissionDefaults"    => [ // default is none if not given "login"
+            "login",
+            "user-view-all",
+            "user-edit-own",
+        ],
+        'permissionGroups' => [
+            'admin' => [
+                "login",
+                "user-view-own",
+                "user-view-all",
+                "user-edit-own",
+                "user-edit-all",
+                "user-delete-own",
+                "user-delete-all",
+                "user-approve",
+                "user-deny",
+                "user-grant" // for permissions
+            ],
+            'basic' => [
+                "login"
+            ],
+            'user' => [
+                "login",
+                "user-view-own",
+                "user-edit-own",
+                "user-delete-own",
+            ],
+            'moderator' => [
+                "user-view-own",
+                "user-view-all",
+                "user-edit-own",
+                "user-edit-all",
+                "user-delete-own",
+                "user-approve",
+                "user-deny",
+                "user-grant" // for permissions
+            ]
+        ],
+        'ttlDefault'            => '600',
+        'theme'                 => 'example-app',
+        'portalRoutes'          => [
+            '/'               => '\Bc\App\Apps\ExampleApp\Portal\ExampleAppPortalExample',
+            '/signup/'        => '\Bc\App\Apps\ExampleApp\Portal\ExampleAppPortalSignUp',
+            '/users/'         => '\Bc\App\Apps\ExampleApp\Portal\ExampleAppPortalUsers',
+            '/user/me/'       => '\Bc\App\Apps\ExampleApp\Portal\ExampleAppPortalUser',
+            '/user/([^/]*)/'  => '\Bc\App\Apps\ExampleApp\Portal\ExampleAppPortalUser',
+            '/logout/'        => '\Bc\App\Apps\ExampleApp\Portal\ExampleAppPortalLogout',
+        ],
+        'pathMatchVars'         => [
+            'bc',
+            'password-reset',
+            'user',
+            'users',
+            'signup',
+            'me',
+            'logout',
+            'verify-email',
+        ],
+        'gatedRoutes'           => [
+            '/(.*)',
+        ],
+        'skipGateRoutes'        => [
+            '^/signup/'
+        ],
+        'adminEmail'          => 'amasiell.g@gmail.com',
+        'exampleAppEmail'     => 'amasiell.g@gmail.com',
+        'exampleAppEmailName' => 'Example App',
+        'sendGridApiKey'      => 'PASTE YOUR SENDGRID KEY',
     ]
 ];
 

@@ -22,7 +22,7 @@ class NavUtil {
         $this->bc = $bc;
         $this->items = Util::arrayifyObject($items);
         $this->navRenderPath = $navRenderPath;
-        $this->$navActiveClass = $navActiveClass;
+        $this->navActiveClass = $navActiveClass;
     }
 
     protected function navStructure($returnKeys = [], $excludeKeys = [])
@@ -121,6 +121,10 @@ class NavUtil {
             return;
         }
 
+        if (!isset($this->nav[$key]['attributes']['class'])) {
+            $this->nav[$key]['attributes']['class'] = '';
+        }
+        
         $this->nav[$key]['attributes']['class'] .= ' ' . $this->navActiveClass;
     }
     

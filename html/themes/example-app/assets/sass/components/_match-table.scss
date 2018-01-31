@@ -1,0 +1,70 @@
+.match-candidates {
+
+    background: #fff;
+    box-shadow: 2px 2px 20px -10px #999;
+    @include bp(md) {
+	width: 50%;
+	margin: auto;
+    }
+
+    table {
+
+        background: #fff;
+        
+	tr {
+	    th {
+		font-size: 1.3em;
+		padding: 10px;
+		text-align: center;
+
+		&:nth-of-type(even) {
+		    border-left: 3px solid #ccc;
+		    width: 50%;
+		}
+	    }
+	}
+
+
+	td[colspan] {
+	    text-transform: uppercase;
+	    font-weight: bold;
+	    background: lighten($brown-grey, 50%);
+	    color: #fff;
+	    font-size: .9em;
+	    transition: color, background .3s ease 0s;
+
+	    &:hover {
+		background: lighten($orange, 10%);
+		color: #fff;
+	    }
+	}
+
+	tr {
+	    td {
+		&:nth-of-type(even) {
+		    border-left: 3px solid #ccc;
+		    width: 50%;
+		}
+	    }
+	}
+
+	ul {
+	    margin-top: 0;
+	    padding: 0;
+
+	    li {
+		list-style-type: none;
+	    }
+	}
+
+	.badge {
+	    background: #999;
+	}
+
+	.breakword {
+	    word-wrap:break-word;
+	    max-width: 20vw;
+	}
+
+    }
+}

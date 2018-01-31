@@ -16,5 +16,19 @@ return [
         'name' => '',
         'host' => 'mysql',
         'port' => '3306'
+    ],
+    'your_project_no_db' => [
+        'user' => !empty(getenv('DL_DB_NAME')) ? getenv('DL_DB_USER') : 'root',
+        'pass' => !empty(getenv('DL_DB_PASS')) ? getenv('DL_DB_PASS') : '1234',
+        'name' => !empty(getenv('DL_DB_NAME')) ? getenv('DL_DB_NAME') : '',
+        'host' => !empty(getenv('DL_DB_HOST')) ? getenv('DL_DB_HOST') : 'mysql',
+        'port' => !empty(getenv('DL_DB_PORT')) ? getenv('DL_DB_PORT') : '3306',
+    ],
+    'your_project' => [
+        'user' => !empty(getenv('DL_DB_NAME')) ? getenv('DL_DB_USER') : 'root',
+        'pass' => !empty(getenv('DL_DB_PASS')) ? getenv('DL_DB_PASS') : '1234',
+        'name' => !empty(getenv('DL_DB_NAME')) ? getenv('DL_DB_NAME') : 'your_project',
+        'host' => !empty(getenv('DL_DB_HOST')) ? getenv('DL_DB_HOST') : 'mysql',
+        'port' => !empty(getenv('DL_DB_PORT')) ? getenv('DL_DB_PORT') : '3306',
     ]
 ];

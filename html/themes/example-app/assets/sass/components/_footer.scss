@@ -1,0 +1,16 @@
+footer {
+
+    .footer-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #ccc;
+        color: rgba(#000, .4);
+	text-align: center;
+	font-family: $font-mont;
+	font-size: .6em;
+	text-transform: uppercase;
+	line-height: 30px;
+    }
+}

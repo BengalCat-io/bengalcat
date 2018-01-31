@@ -1,0 +1,76 @@
+label {
+    display: block;
+}
+
+input {
+    display: block;
+    border-radius: 0;
+    border: 1px rgba($grey-med, .2) solid;
+    background: rgba(#fff, .2);
+    line-height: 30px;
+    font-size: .9em;
+    padding: 8px;
+    margin: 10px 0;
+    color: #555;
+    font-weight: normal;
+}
+
+.feedback-form {
+
+    background: $orange;
+    padding: 20px;
+    color: #fff;
+    border-radius: 5px;
+
+    @include bp(md) {
+	padding: 5%;
+	width: 45%;
+	margin: 50px auto;
+    }
+
+    textarea {
+	background: rgba(#000, .2);
+	border-radius: 0;
+	border: none;
+	padding: 10px;
+	width: 100%;
+
+	&::placeholder {
+	    color: #fff;
+	    opacity: .7;
+	}
+    }
+
+    input {
+	background: rgba(#000, .2);
+	border-radius: 0;
+	color: #fff;
+	border: none;
+	width: 100%;
+
+	&::placeholder {
+	    color: #fff;
+	    opacity: .7;
+	}
+
+    }
+
+    button {
+	display: block !important;
+	width: 100% !important;
+	margin: 10px auto;
+	padding: 5px;
+	background: transparent;
+	border-color: darken($orange, 5%);
+	color: #fff;
+	transition: border-color .3s ease 0s;
+
+	&:hover {
+	    border-color: $gold;
+	}
+    }
+}
+
+.decision-filters-form {
+
+}

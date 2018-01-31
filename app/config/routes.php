@@ -3,7 +3,7 @@
 return [
     
     /* Custom View Controllers */
-    '/' => '\Bc\App\Controllers\Example\View\Installed',
+    '/' => '\Bc\App\Controllers\Example\View\Installed', // Change to Home for practice.
     
     /* Apps (and their APIs) */
     
@@ -15,5 +15,8 @@ return [
         '/api/cms/[^/]*/route(/.*)' => '\Bc\App\Core\Apps\Cms\CmsIndex',
         '/portal/cms/(.*)' => '\Bc\App\Core\Apps\Cms\CmsIndex',
         '(/.*)' => '\Bc\App\Core\Apps\Cms\CmsIndex', // catch all, put this last
+    
+    /* An example app */
+//    '(/.*)' => '\Bc\App\Apps\ExampleApp\ExampleAppIndex', // catch all, put this last
     
 ];

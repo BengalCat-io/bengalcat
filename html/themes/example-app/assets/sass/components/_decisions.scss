@@ -1,0 +1,161 @@
+.decisions {
+
+    font-size: 0;
+    text-align: center;
+
+    .decision {
+	text-align: left;
+	min-height: auto;
+	vertical-align: top;
+	width: auto;
+	display: block;
+	padding: 10px;
+
+	box-shadow: 2px 2px 2px -2px #ccc;
+	background: #fff;
+	color: #fff;
+	margin: 10px;
+
+	a {
+	    display: block;
+	}
+
+	@include bp(lg) {
+	    width: 23vw;
+	    display: inline-block;
+	    padding: 1vw;
+	    min-height: 280px;
+	}
+
+	&:hover {
+	    background: $orange;
+	    p {
+		color: #fff;
+	    }
+
+	    hr {
+		border-top-color: rgba(#000, .4);
+	    }
+
+	    .status {
+		color: rgba(#000, .5);
+	    }
+
+	    .badge {
+		background: rgba(#000, .2);
+	    }
+	}
+
+	p {
+	    font-size: 12px;
+	    color: $orange;
+	}
+
+	a {
+	    color: #fff;
+	    &:hover {
+		border-color: transparent;
+	    }
+	}
+
+	h5 {
+	    margin: 5px auto;
+	    color: rgba(#000, .4);
+	    font-size: 20px;
+	}
+
+	hr {
+	    margin: 5px auto;
+	    border-top-color: $orange;
+	}
+
+	.listing {
+	    width: 45%;
+	    display: inline-block;
+	    min-height: 120px;
+	    vertical-align: top;
+	    font-size: 15px;
+	}
+
+	.status {
+            
+            @extend .clearfix; 
+            
+	    color: rgba(#000, .4);
+	    font-size: 14px;
+	    text-transform: uppercase;
+
+	    &:nth-of-type(3) {
+		.badge {
+		    background: lighten($orange, 10%);
+		}
+	    }
+	}
+
+	.badge {
+	    min-width: 100px;
+	    float: right;
+	    color: #fff;
+	    border-radius: 3px;
+	    background: rgba(#000, .2);
+	}
+    }
+
+}
+
+.decision-navigation {
+
+    @extend .clearfix;
+
+    width: auto;
+    margin: 20px auto 100px;
+
+    @include bp(lg) {
+	width: 46vw;
+	padding: 1vw;
+    }
+
+    .nav-item {
+
+	min-width: 100px;
+	border: 2px solid $orange;
+	padding: 10px;
+	color: $orange;
+	background: #fff;
+	text-align: center;
+
+	&.next {
+	    float: right;
+	}
+
+	&.previous {
+	    float: left;
+	}
+
+	&.nav-disabled {
+	    opacity: .2;
+	    position: relative;
+
+	    a {
+		pointer-events: none;
+	    }
+
+	    &:after {
+		content: '';
+		cursor: not-allowed;
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		top: 0;
+		left: 0;
+	    }
+	}
+
+	a {
+	    color: $orange;
+	    display: block;
+	}
+
+    }
+
+}
