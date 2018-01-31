@@ -1,0 +1,446 @@
+#!/usr/bin/env bash
+
+# start with default port value and name
+WEB_PORT=3000
+PORT_FILE="../port"
+DEFAULT_SITES_FILE="../../../ProxyLocal/sites.yml"
+
+DEFAULT_ENV_FILE="../env-example.yml"
+ENV_FILE_CUSTOM="../env-custom.yml"
+
+DEFAULT_PHP_FILE="../php7-fpm.site.conf"
+PHP_FILE_CUSTOM="../php7-fpm.site.custom.conf"
+
+DEFAULT_PROXY_DATABASES_FILE="../../../ProxyLocal/databases.yml"
+DEFAULT_DOCKER_DATABASES_FILE="../databases.yml"
+
+DEFAULT_DOCKERFILE_FILE="Dockerfile"
+CUSTOM_DOCKERFILE_FILE="Dockerfile-custom"
+
+# Process Arguments:
+P=$(sed -e 's#.*\-p=\([^\-]*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9${10}")
+N=$(sed -e 's#.*\-n=\([^\-]*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9${10}")
+S=$(sed -e 's#.*\-s=\([^\-]*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9${10}")
+D=$(sed -e 's#.*\-d=\([^\-]*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9${10}")
+K=$(sed -e 's#.*\-k=\([^\-]*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9${10}")
+M=$(sed -e 's#.*\-m=\([^\-]*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9${10}")
+H=$(sed -e 's#.*\-h=\([^\-]*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9${10}")
+R=$(sed -e 's#.*\-r=\([^\-]*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9${10}")
+C=$(sed -e 's#.*\-c=\([^\-]*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9${10}")
+L=$(sed -e 's#.*\-l=\([^\-]*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9${10}")
+
+if [ "$P" == "$1$2$3$4$5$6$7$8$9${10}" ] && [ -f  "${PORT_FILE}" ]; then
+    P=$(eval cat ${PORT_FILE});
+fi
+
+# p
+if [ ! "$P" == "$1$2$3$4$5$6$7$8$9${10}" ]; then
+    WEB_PORT=$P
+fi
+
+# n
+if [ ! "$N" == "$1$2$3$4$5$6$7$8$9${10}" ]; then
+    NAME=$N
+fi
+
+# s
+if [ ! "$S" == "$1$2$3$4$5$6$7$8$9${10}" ]; then
+    SITES_FILE=$S
+fi
+
+# d
+if [ ! "$D" == "$1$2$3$4$5$6$7$8$9${10}" ]; then
+    SITE_DOWN=$(sed -e 's#.*\-d=\([^\-]*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9${10}")
+fi
+
+# k
+if [ ! "$K" == "$1$2$3$4$5$6$7$8$9${10}" ]; then
+    NGROK=$K
+fi
+
+# m
+if [ ! "$M" == "$1$2$3$4$5$6$7$8$9${10}" ]; then
+    SITE_DB=$M
+fi
+
+# h
+if [ ! "$H" == "$1$2$3$4$5$6$7$8$9${10}" ]; then
+    SITE_SSH=$H
+fi
+
+# r
+if [ ! "$R" == "$1$2$3$4$5$6$7$8$9${10}" ]; then
+    REFRESH_DB=$R
+fi
+
+# c - not from ssh (so a create db)
+if [ ! "$C" == "$1$2$3$4$5$6$7$8$9${10}" ] && [ "${SITE_SSH}" == '' ]; then
+    CREATE_DB=$C
+fi
+
+# c - from ssh (so a command to follow)
+if [ ! "$C" == "$1$2$3$4$5$6$7$8$9${10}" ] && [ "${SITE_SSH}" != '' ]; then
+    SSH_COMMAND=$(sed -e 's#.*\-c=\(.*\).*#\1#' <<< "$1$2$3$4$5$6$7$8$9") # this one is special, bc command might have dashes
+fi
+
+# l
+if [ ! "$L" == "$1$2$3$4$5$6$7$8$9${10}" ]; then
+    LOCAL_DB=$L
+fi
+
+# Allow short value "~" to indicate default sites file
+if [ "$SITES_FILE" == "~" ]; then
+    SITES_FILE="${DEFAULT_SITES_FILE}"
+fi
+
+# Stop if sites file is specified but doesn't exist at path
+
+if [ "$SITES_FILE" ] && [ ! -f $SITES_FILE ]; then
+    printf "Your sites.yml file doesn't exist.\n"
+    exit 1
+fi
+
+# Complain that specifying a name, but not a sites file.
+
+if [ "$NAME" ] && [ ! "$SITES_FILE" ] && [ ! -f "${DEFAULT_SITES_FILE}" ]; then
+    printf "Consider specifying an existing sites file if using a domain. Using default port: 3000\n"
+fi
+
+if [ "$NAME" ] && [ ! "$SITES_FILE" ] && [ -f "${DEFAULT_SITES_FILE}" ]; then
+    printf "Using default relative path for sites: ${DEFAULT_SITES_FILE}\n"
+    SITES_FILE="${DEFAULT_SITES_FILE}"
+fi
+
+# Determine ProxyLocal location based on SITES_FILE
+PROXYLOCAL_LOC="${SITES_FILE/sites.yml/}"
+PROXYLOCAL_SITES="${SITES_FILE}"
+
+# Account for the fact we may not have specified sites.yml but it does exist.
+if [ ! "$SITES_FILE" ] && [ -f "${DEFAULT_SITES_FILE}" ]; then
+    PROXYLOCAL_SITES="${DEFAULT_SITES_FILE}"
+    PROXYLOCAL_LOC="${DEFAULT_SITES_FILE/sites.yml/}"
+fi
+
+if [ ! "$PROXYLOCAL_LOC" == "" ]; then
+    PROXYLOCAL_COM="${PROXYLOCAL_LOC}commands/"
+fi
+
+# Determine WEB_PORT from sites.yml (if it exists) and if no port file or port switch specified
+if [ "$NAME" ] && [ "$PROXYLOCAL_SITES" ] && [ ! -f  "${PORT_FILE}" ] && [ "$P" == "$1$2$3$4$5$6$7$8$9${10}" ]; then
+    PORTPART=$(eval cat $PROXYLOCAL_SITES | awk "/: ${NAME}/"' { print $1 }')
+    WEB_PORT="${PORTPART/:/}"
+fi
+
+if [ "$WEB_PORT" == '' ]; then
+    printf "The name of the site specified doesn't match what's in the sites.yml file. Also, I suggest creating a port file in DockerLocal to avoid typing the name every time.\n"
+    exit
+fi
+
+# Determine site domain from sites.yml
+SITE_DOMAIN=$(eval cat $PROXYLOCAL_SITES | awk "/${WEB_PORT}:/"' { print $2 }')
+# Check if proxylocal is running...
+PROXYLOCAL_NETWORK=$(eval sudo docker network ls | grep "proxylocal_docker-proxy-net")
+PROXYLOCAL_CONTAINER=$(eval sudo docker ps | grep "proxylocal_proxy_1")
+
+if [ "$PROXYLOCAL_CONTAINER" == '' ]; then
+    printf "The proxylocal network is up, but the container is down. So, restarting proxylocal...\n"
+    PROXYLOCAL_NETWORK=''
+fi
+
+# Network is down; try to bring up if ProxyLocal is installed AND if this site was in sites.yml
+if [ "${PROXYLOCAL_NETWORK}" == '' ] && [ -f "${PROXYLOCAL_SITES}" ] && [ ! "$SITE_DOMAIN" == '' ]; then
+    RETURNPWD=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+    printf "ProxyLocal not running... going to start it up. Make sure nginx/apache are not running on port 80!\n"
+    eval "cd ${PROXYLOCAL_COM} && ./proxy-up"
+    cd $RETURNPWD
+fi
+
+# Try again
+PROXYLOCAL_NETWORK=$(eval sudo docker network ls | grep "proxylocal_docker-proxy-net")
+
+# Handle the nginx up part after the machine is up, because otherwise the upstream host will not exist yet.
+
+# Can Handle the nginx down because it will be up already..
+# Network is up; handle nginx if site is down
+if [ ! "${PROXYLOCAL_NETWORK}" == '' ] && [ "$SITE_DOWN" ] && [ ! "$SITE_DOMAIN" == '' ]; then
+    printf "Disabling site with and reloading nginx in Proxylocal.\n"
+    RETURNPWD=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+    eval "cd ${PROXYLOCAL_COM} && ./proxy-nginx -p=$WEB_PORT -d=true && cd ${RETURNPWD}"
+    cd $RETURNPWD
+fi
+
+# DOCKER COMPOSE (use proxylocal if its on)
+FILE="../docker-compose-custom.yml"
+rm $FILE
+
+if [ ! "$PROXYLOCAL_NETWORK" == '' ] && [ ! "$SITE_DOMAIN" == '' ]; then
+    cp ../docker-compose-proxylocal.yml $FILE
+else
+    cp ../docker-compose.yml $FILE
+fi
+
+# DOCKERFILE 
+if [ ! -f "../$CUSTOM_DOCKERFILE_FILE" ]; then
+    DOCKERFILE_FILE="${DEFAULT_DOCKERFILE_FILE}"
+fi
+
+if [ -f "../$CUSTOM_DOCKERFILE_FILE" ]; then
+    DOCKERFILE_FILE="${CUSTOM_DOCKERFILE_FILE}"
+fi
+
+# DETERMINE DATABASES FILE INFO - needs to be done before we populate the docker-compose with ports and such.
+
+if [ -f "${DEFAULT_PROXY_DATABASES_FILE}" ]; then
+  DB_FILE="${DEFAULT_PROXY_DATABASES_FILE}"
+fi
+
+if [ -f "${DEFAULT_DOCKER_DATABASES_FILE}" ]; then
+  DB_FILE="${DEFAULT_DOCKER_DATABASES_FILE}"
+fi
+
+if [ "$DB_FILE" ]; then
+    declare -A DBS
+    parse_yaml() {
+       local prefix=$2
+       local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+       sed -ne "s|^\($s\)\($w\)$s:$s\"\(.*\)\"$s\$|\1$fs\2$fs\3|p" \
+            -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+       awk -F$fs '{
+          indent = length($1)/2;
+          vname[indent] = $2;
+          for (i in vname) {if (i > indent) {delete vname[i]}}
+          if (length($3) > 0) {
+             vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+             printf("%s[%s]=\"%s\"\n", "DBS", $2, $3);
+          }
+       }'
+    }
+
+    eval $(parse_yaml $DB_FILE)
+
+    DB_NAME="${DBS[${WEB_PORT}]}"
+    DB_HOST="${DBS['host']}"
+    DB_USER="${DBS['user']}"
+    DB_PASS="${DBS['pass']}"
+    DB_PORT="${DBS['port']}"
+    DB_SAVE_FILE="../data/dumps/${DB_NAME}.sql.remote.dump"
+
+    if [ -z "$DB_HOST" ] || [ -z "$DB_NAME" ] || [ -z "$DB_PASS" ] || [ -z "$DB_USER" ] || [ -z "$DB_PORT" ]; then
+	INCOMPLETE_DB_CONFIG=true
+    fi
+fi
+
+if [ ! -f "$DB_SAVE_FILE" ] || [ "$REFRESH_DB" ]; then
+    DO_DB_REFRESH=true
+fi
+
+# CREATE DOCKER-COMPOSE - use variables
+MYSQL_PORT=$((3306 + $WEB_PORT))
+MEMCACHED_PORT=$((11211 + $WEB_PORT))
+DOCKER_NAME=$(echo "dockerlocal${WEB_PORT}")
+
+if [ "$CREATE_DB" ]; then
+    DB_NAME="$CREATE_DB"
+    echo "${DB_NAME}" > ../database
+fi
+
+if [ "$LOCAL_DB" ]; then
+    DB_NAME="$LOCAL_DB"
+fi
+
+if [ ! "DB_NAME" == '' ] && [ -f ../database ]; then
+    LOCAL_DB=$(eval cat ../database)
+    DB_NAME=$(eval cat ../database)
+fi
+
+# Figure out env vars
+if [ ! -f "../env.yml" ]; then
+    ENV_FILE="${DEFAULT_ENV_FILE}"
+fi
+
+if [ -f "../env.yml" ]; then
+    ENV_FILE="../env.yml"
+fi
+
+if [ -f "${ENV_FILE}" ]; then
+    rm -f $ENV_FILE_CUSTOM
+    cp $ENV_FILE $ENV_FILE_CUSTOM
+    sed -i'.bak' "s/DATABASE_NAME/${DB_NAME}/g;" $ENV_FILE_CUSTOM
+    sed -i'.bak' "s/DATABASE_HOST/mysql/g;" $ENV_FILE_CUSTOM
+    sed -i'.bak' "s/DATABASE_PORT/${MYSQL_PORT}/g;" $ENV_FILE_CUSTOM
+    rm "${ENV_FILE_CUSTOM}.bak"
+
+    declare -A ENVS
+    parse_yaml() {
+       local prefix=$2
+       local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
+       sed -ne "s|^\($s\)\($w\)$s:$s\"\(.*\)\"$s\$|\1$fs\2$fs\3|p" \
+            -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
+       awk -F$fs '{
+          indent = length($1)/2;
+          vname[indent] = $2;
+          for (i in vname) {if (i > indent) {delete vname[i]}}
+          if (length($3) > 0) {
+             vn=""; for (i=0; i<indent; i++) {vn=(vn)(vname[i])("_")}
+             printf("%s[%s]=\"{%s}\"\n", "ENVS", $2, $3);
+          }
+       }'
+    }
+
+    eval $(parse_yaml $ENV_FILE_CUSTOM)
+
+    # add envs to custom php file
+
+    rm -f $PHP_FILE_CUSTOM
+    cp $DEFAULT_PHP_FILE $PHP_FILE_CUSTOM
+
+    for i in "${!ENVS[@]}"
+    do
+      VALUE="${ENVS[$i]}\n"
+      NEWLINE=";ENV"
+      CONF="$(printf "env[$i]=${VALUE}")#"
+      sed -i'.bak' "s/;ENV/${CONF}${NEWLINE}\
+      /g" $PHP_FILE_CUSTOM
+    done
+
+    # Replace {} hack with " to ensure vars are quoted
+    tr '{' '"' < "${PHP_FILE_CUSTOM}.bak" > "${PHP_FILE_CUSTOM}.bak2"
+    tr '}' '"' < "${PHP_FILE_CUSTOM}.bak2" > "${PHP_FILE_CUSTOM}.bak"
+
+    # Get around osx not liking sed + new lines
+    tr '#' '\n' < "${PHP_FILE_CUSTOM}.bak" > $PHP_FILE_CUSTOM
+
+    rm "${PHP_FILE_CUSTOM}.bak2"
+    rm "${PHP_FILE_CUSTOM}.bak"
+fi
+
+
+# Final checks for behavior
+
+## NGROK
+if [ "$NGROK" ]; then
+    ngrok http 0.0.0.0:80
+    exit 1
+fi
+
+## UP/BUILD
+if [ "$WEB_PORT" == "3000" ]; then
+    printf "No port specified, using default 3000. Next instance of DockerLocal will need a port specified: ./site-up -p=3001\n"
+fi
+
+sed -i'.bak' "s/WEB_PORT/${WEB_PORT}/g;" $FILE
+sed -i'.bak' "s/MYSQL_PORT/${MYSQL_PORT}/g;" $FILE
+sed -i'.bak' "s/MEMCACHED_PORT/${MEMCACHED_PORT}/g;" $FILE
+sed -i'.bak' "s/DOCKERFILE/${DOCKERFILE_FILE}/g;" $FILE
+
+sed -i'.bak' "s/DATABASE_NAME/${DB_NAME}/g;" $FILE
+sed -i'.bak' "s/DATABASE_HOST/${DOCKER_NAME}_mysql_1/g;" $FILE
+sed -i'.bak' "s/DATABASE_PORT/${MYSQL_PORT}/g;" $FILE
+
+rm "${FILE}.bak"
+
+
+## SHUT DOWN
+if [ "$SITE_DOWN" ]; then
+    sudo docker-compose -p "${DOCKER_NAME}" -f "${FILE}" down
+    exit 1
+fi
+
+if [ "$SSH_COMMAND" != '' ]; then
+
+    if [ "$SITE_SSH" == 'webroot' ]; then
+        SSH_CONT='web'
+    elif [ "$SITE_SSH" == 'mysqlroot' ]; then
+        SSH_CONT='web'
+    else
+        SSH_CONT="$SITE_SSH"
+    fi
+
+    # Run the command. the /bin/bash -i makes the shell relative to inside the
+    # container so that it's able to see aliases and the bashrc
+    sudo docker exec -t -i "${DOCKER_NAME}"_"$SITE_SSH"_1 /bin/bash -i -c "${SSH_COMMAND}"
+    exit 1
+fi
+
+## SSH into web as www-data
+if [ "$SITE_SSH" ] && [ "$SITE_SSH" == 'web' ]; then
+    sudo docker exec -t -i "${DOCKER_NAME}"_"$SITE_SSH"_1 bash -c 'cd /var/www/site && su -s /bin/bash -l www-data -m'
+    exit 1
+fi
+
+## SSH into web as root
+if [ "$SITE_SSH" ] && [ "$SITE_SSH" == 'webroot' ]; then
+    sudo docker exec -t -i "${DOCKER_NAME}"_web_1 /bin/bash
+    exit 1
+fi
+
+## SSH into mysql
+if [ "$SITE_SSH" ] && [ "$SITE_SSH" == 'mysql' ]; then
+    sudo docker exec -t -i "${DOCKER_NAME}"_"$SITE_SSH"_1 /bin/bash -c "mysql -u root -p1234"
+    exit 1
+fi
+
+## SSH into mysql
+if [ "$SITE_SSH" ] && [ "$SITE_SSH" == 'mysqlroot' ]; then
+    sudo docker exec -t -i "${DOCKER_NAME}"_mysql_1 /bin/bash
+    exit 1
+fi
+
+## SSH into other containers
+if [ "$SITE_SSH" ]; then
+    sudo docker exec -t -i "${DOCKER_NAME}"_"$SITE_SSH"_1 /bin/bash
+    exit 1
+fi
+
+# NEED TO UP BEFORE DB
+# Not sure when we would want to take it down but leaving here incase we do at some point.
+# sudo docker-compose -p "$DOCKER_NAME" -f "$FILE" down
+# Up
+sudo docker-compose -p "$DOCKER_NAME" -f "$FILE" up --build -d
+
+# right after its up change www-data user to match cur user
+CUR_UID=$(echo $UID)
+USERMOD_COMMAND="usermod -u ${CUR_UID} www-data"
+./site-ssh -h=web -c="${USERMOD_COMMAND}"
+
+# Network is up; handle nginx if site is up
+if [ ! "${PROXYLOCAL_NETWORK}" == '' ] && [ ! "$SITE_DOWN" ] && [ ! "$SITE_DOMAIN" == '' ]; then
+    printf "Enabling site with and reloading nginx in Proxylocal.\n"
+    RETURNPWD=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+    eval "cd ${PROXYLOCAL_COM} && ./proxy-nginx -p=$WEB_PORT"
+    cd $RETURNPWD
+fi
+
+## Provide URL to view site?
+if [ ! "$PROXYLOCAL_NETWORK" == '' ] && [ ! "$SITE_DOMAIN" == '' ]; then
+    printf "Visit your site at: http://${SITE_DOMAIN}\n"
+else
+    printf "Either you are not using proxylocal or you do not have an entry for this port in sites.yml\n"
+    printf "Visit your site at: http://localhost:${WEB_PORT}\n"
+fi
+
+## CHECK DB (First time use)
+if [ "$INCOMPLETE_DB_CONFIG" ] && [ "$DO_DB_REFRESH" ]; then
+    if [ "$LOCAL_DB" ] || [ "$CREATE_DB" ]; then
+	printf "Using a local database, NOT fetching from a remote and populating a local database. Just using a local one.\n"
+    else
+        printf "Incomplete remote database configurations. Please check it if expecting a remote database to be pulled down to a local one with this site, and specify a domain or port!\n"
+    fi
+fi
+
+if [ "$DB_FILE" ] && [ ! "$INCOMPLETE_DB_CONFIG" ] && [ "$DO_DB_REFRESH" ]; then
+    DB_SAVE_FILE_BASENAME="${DB_NAME}.sql.remote.dump"
+    DB_SAVE_FILE_INSIDE="/docker-entrypoint-initdb.d/${DB_SAVE_FILE_BASENAME}"
+    DB_COMMAND="mysqldump -u ${DB_USER} -p${DB_PASS} ${DB_NAME} --port=${DB_PORT} -h ${DB_HOST} -B --add-drop-database > ${DB_SAVE_FILE_INSIDE}"
+fi
+
+# Create DB
+if [ "$CREATE_DB" ]; then
+    ./site-db -p=${WEB_PORT} -c=${C}
+fi
+
+if [ "$DB_COMMAND" ]; then
+    sudo docker exec ${DOCKER_NAME}_mysql_1 bash -c "${DB_COMMAND}"
+    ./site-db -p=${WEB_PORT} -f=${DB_SAVE_FILE_BASENAME}
+    exit 1
+fi

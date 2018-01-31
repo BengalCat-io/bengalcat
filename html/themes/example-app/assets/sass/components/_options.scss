@@ -1,0 +1,211 @@
+.options {
+
+    @extend .clearfix;
+    margin-bottom: 100px;
+
+    .option {
+
+	background: #fff;
+	box-shadow: 2px 2px 2px -2px #ccc;
+	padding: 20px;
+	min-height: 600px;
+	margin-bottom: 30px;
+
+
+	.option-name {
+	    color: $orange;
+	    text-align: center;
+	    min-height: 60px;
+	    vertical-align: top;
+	    margin: 20px;
+	}
+
+	& > a {
+	    display: block;
+
+	    &:hover {
+		text-decoration: none;
+		border-color: transparent;
+
+		.option-image {
+		    img {
+			-moz-animation:bounce .40s linear;
+			-webkit-animation:bounce .40s linear;
+		    }
+		}
+	    }
+	}
+
+	p {
+	    padding: 15px;
+	    text-align: center;
+	    margin: 10px 0;
+	    min-height: 120px;
+	}
+
+	ul {
+	    list-style-type: none;
+	    background: rgba(#000, .02);
+	    border-radius: 10px;
+	    padding: 25px;
+	    margin: auto;
+
+	    @include bp(md) {
+		width: 50%;
+	    }
+
+	    li {
+		&:before {
+		    padding-right: 10px;
+		    @include content-icon('\f105');
+		    line-height: inherit;
+		}
+	    }
+	}
+
+	.option-image {
+	    background-repeat: no-repeat;
+	    transform-origin: center top;
+	    text-align: center;
+
+	    img {
+		max-width: 100%;
+		min-height: 150px;
+		max-height: 150px;
+		width: auto;
+		height: auto;
+	    }
+
+	    &.option-start-matching {
+	    }
+
+	    &.option-get-help {
+	    }
+
+	    &.option-my-matches {
+	    }
+	}
+
+	&.option-highlight {
+	    background: lighten($orange, 10%);
+	    color: #fff;
+
+	    .option-name {
+		color: #fff;
+	    }
+
+	    a {
+		color: #fff;
+	    }
+	}
+
+
+    }
+
+    &.options-help, &.options-submit-decision, &.options-feedback-form {
+
+	margin-bottom: 100px;
+
+	.option {
+	    min-height: 0px;
+	    position: relative;
+	    overflow: hidden;
+	    margin: 30px auto;
+
+	    @include bp(md) {
+		width: 80vw;
+	    }
+
+	    p {
+		text-align: left;
+		margin: auto;
+		margin-bottom: 10px;
+		min-height: 0px;
+
+		&.text-center {
+		    text-align: center;
+		}
+
+		@include bp(md) {
+		    width: 65%;
+		}
+	    }
+
+	    button {
+		width: 100%;
+		display: block;
+                min-width: 250px;
+
+		@include bp(md) {
+		    width: auto;
+                    min-width: 0;
+		    display: inline-block;
+		}
+
+		img {
+		    display: block;
+		    max-width: 150px;
+		    height: 70px;
+		    margin: auto;
+		    @include bp(md) {
+			max-width: auto;
+		    }
+		}
+
+		&:hover img {
+		    -moz-animation: bounce .40s linear;
+		    -webkit-animation: bounce .40s linear;
+		}
+	    }
+
+	    ul {
+		@include bp(md) {
+		    width: 40%;
+		}
+	    }
+
+	    &::before {
+		content: '';
+		background-image: url('../img/help-chicken4.png');
+		display: block;
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		left: 0;
+		width: 500px;
+		background-position-x: -190px;
+		background-repeat: no-repeat;
+		background-position-y: -44px;
+		pointer-events: none;
+		opacity: .05;
+
+		@include bp(md) {
+		    opacity: .8;
+		}
+	    }
+
+	    &:nth-of-type(2n)::before {
+		right: 0;
+		left: auto;
+		background-position-x: 140px;
+		background-position-y: -44px;
+		background-image: url('../img/help-chicken3.png');
+	    }
+	}
+
+    }
+
+    &.options-submit-decision {
+	margin-bottom: 0px;
+
+	.option {
+	    width: 100%;
+	    margin-bottom: 0px;
+
+	    &::before {
+		background: none;
+	    }
+	}
+    }
+
+}

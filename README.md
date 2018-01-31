@@ -32,8 +32,8 @@ More ideas of what you're doing with BengalCat:
 Download repo
 
 ```
-cd DockerLocal
-sudo docker-compose up
+cd DockerLocal/commands
+./site-up
 ```
 
 Go to [http://localhost:8080](http://localhost:8080)
@@ -42,7 +42,7 @@ Go to [http://localhost:8080](http://localhost:8080)
 
 ### Setup Routes
 
-- Copy `app\config\routes-sample.php` to `app\config\routes.php`;
+- Review, comment out, and add `app\config\routes.php`;
         - You can view the home page now and you'll see the install template if successful.
 
 ### Make a Page! Ex. Home Page
@@ -68,46 +68,16 @@ Go to [http://localhost:8080](http://localhost:8080)
     ```
 
 
-1. Edit the `home.php` in `html/src/main/home.php`
+1. Edit the `home.php` in `html/themes/yourtheme/src/main/home.php` (copy bengalcat theme to your own folder and change config/settingsDefaults.php to reflect that.)
 
 
 ### Head, Header, Footer templates
 
-You can modify your head, header, footer templates in the `html/src/templates/` directory.
+You can modify your head, header, footer templates in the `html/themes/yourtheme/src/templates/` directory.
 
 Cool notes:
 
 - You can make alternative heads, headers, footers per class in the init() method
-
-### Front-end Fun - Gulp or not to Gulp
-
-The project defaults to using compiled css from sass and compiled JavaScript.
-
-- The complied output folder is in version control: `html/assets/build/`
-- You can edit your `head.php` in the templates folder to use whatever css/js sources you want though.
-- Or, you can teach yourself gulp, or to get started...
-    - read the `INSTALL.md` about NodeJS, npm etc
-    - in the terminal, `cd html/assets/`
-        - `gulp watch` This will watch your changes to sass files
-            - ex. edit `html/assets/sass/base/_base.scss` with something obvious and watch your terminal watching changes. Refresh your browser.
-        - `gulp` will run all the tasks defined in the `gulpfile.js`
-    - You need to be a little bit of a self-starter and learn this stuff on your own if you want to know more about gulp! Google is your friend.
-
----
-
-
-### Explanations for those who like them
-
-The site is based on routes (many PHP frameworks do this ie Laravel, Symfony ...).
-
-- You edit routes in `app/config/routes.php`
-- You associate a pattern in the associative array **key** with the full namespace + class name to handle the route
-    - This namespace + class is essentially, your controller.
-    - The patterns are either **exact match** or they can have a regex pattern that must have a capturing group using `()`
-        - `/articles/([^/]*)/` - This pattern will match any number of characters between two /s but cannot match a /
-            - This would be useful for something like /articles/an-amazing-article/ where `an-amazing-article` will be the variant you can use in your controller.
-
-
 
 #### Route Controllers (found in `app/controllers/`) extend abstract RouteExtender
 

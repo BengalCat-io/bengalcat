@@ -1,0 +1,41 @@
+body.loginRendered {
+
+    .full-width-hero .hero-text {
+	width: 95vw;
+
+	@include bp(md) {
+	    width: 30vw;
+	}
+
+    }
+}
+
+.form-login {
+    background: rgba(#fff, .9);
+    padding: 30px;
+    color: $orange;
+
+    button {
+        background: none;
+        border: 3px solid $orange;
+        color: $orange;
+        border-radius: 0px;
+        padding: 10px 0px;
+        margin: 20px auto;
+        display: block;
+        width: 100%;
+    }
+
+    input {
+	display: block;
+	width: 100%;
+    }
+
+    .login-error {
+	margin-bottom: 30px;
+	background: #fff;
+	padding: 10px;
+	border-bottom: 3px solid #eee;
+	text-align: center;
+    }
+}

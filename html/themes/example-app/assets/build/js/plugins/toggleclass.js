@@ -1,0 +1,1 @@
+app.toggleclass={init:function(t){this.hookToggle(this.getProps(t))},getProps:function(t){return{el:t,toggleClass:t.attr("data-toggle-class"),toggleTarget:$(t.attr("data-toggle-target"))}},hookToggle:function(t){t.el.click(function(){t.toggleTarget.toggleClass(t.toggleClass)})}};

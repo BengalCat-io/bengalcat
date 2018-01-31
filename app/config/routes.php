@@ -1,12 +1,22 @@
 <?php
 
-return array(
-  '/' => '\Bc\App\Controllers\Installed',
-  '/about/' => '\Bc\App\Controllers\About',
-  /** @note Great for an archive page, and can make the variant page extend this class */
-  '/articles/' => '\Bc\App\Controllers\Articles',
+return [
+    
+    /* Custom View Controllers */
+    '/' => '\Bc\App\Controllers\Example\View\Installed', // Change to Home for practice.
+    
+    /* Apps (and their APIs) */
+    
+        // Admin
+        '/api/admin/[^/]*/route(/.*)' => '\Bc\App\Core\Apps\Admin\AdminIndex',
+        '/admin/(.*)' => '\Bc\App\Core\Apps\Admin\AdminIndex',
 
-  /** @note Example of a varying sub page that will probably draw from db */
-  /** @note Use the () to group the variant so you can get the variant. */
-  '/articles/([^/]*)/' => '\Bc\App\Controllers\ArticlesVar',
-);
+        // CMS
+        '/api/cms/[^/]*/route(/.*)' => '\Bc\App\Core\Apps\Cms\CmsIndex',
+        '/portal/cms/(.*)' => '\Bc\App\Core\Apps\Cms\CmsIndex',
+        '(/.*)' => '\Bc\App\Core\Apps\Cms\CmsIndex', // catch all, put this last
+    
+    /* An example app */
+//    '(/.*)' => '\Bc\App\Apps\ExampleApp\ExampleAppIndex', // catch all, put this last
+    
+];
